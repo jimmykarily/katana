@@ -5,4 +5,5 @@ class User < ActiveRecord::Base
          :recoverable, :rememberable, :trackable, :validatable,
          :confirmable
   has_many :test_jobs
+  has_one :power_source, class_name: "Power::Source"
 end

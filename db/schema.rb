@@ -44,6 +44,12 @@ ActiveRecord::Schema.define(version: 20150822162749) do
   add_index "test_jobs", ["test_job_file_id"], name: "index_test_jobs_on_test_job_file_id", using: :btree
   add_index "test_jobs", ["user_id"], name: "index_test_jobs_on_user_id", using: :btree
 
+  create_table "power_sources", force: :cascade do |t|
+    t.integer "user_id",                    null: false
+    t.string  "power_provider", limit: 255
+    t.string  "cluster_name"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string   "email",                  default: "",    null: false
     t.string   "encrypted_password",     default: "",    null: false
