@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150822162749) do
+ActiveRecord::Schema.define(version: 20150826180131) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -44,10 +44,17 @@ ActiveRecord::Schema.define(version: 20150822162749) do
   add_index "test_jobs", ["test_job_file_id"], name: "index_test_jobs_on_test_job_file_id", using: :btree
   add_index "test_jobs", ["user_id"], name: "index_test_jobs_on_user_id", using: :btree
 
+  create_table "amazon_power_providers", force: :cascade do |t|
+    t.string "cluster_arn"
+    t.string "task_arn"
+    t.string "service_arn"
+    t.string "docker_image"
+  end
+
   create_table "power_sources", force: :cascade do |t|
-    t.integer "user_id",                    null: false
-    t.string  "power_provider", limit: 255
-    t.string  "cluster_name"
+    t.integer "user_id",             null: false
+    t.integer "power_provider_id"
+    t.string  "power_provider_type"
   end
 
   create_table "users", force: :cascade do |t|

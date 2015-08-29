@@ -1,0 +1,33 @@
+{
+  "family": "test_runners",
+  "volumes": [
+    {
+      "name": "gems",
+      "host": {}
+    },
+    {
+      "name": "project_code",
+      "host": {}
+    }
+  ],
+  "container_definitions": [
+    {
+      "environment": [{
+        "name": "KATANA_USER_ID",
+        "value": "<%= user_id %>"
+      }],
+      "name": "<%= user_id %>",
+      "image": "<%= docker_image %>",
+      "cpu": 1,
+      "memory": 500,
+      "mount_points": [
+        {
+          "source_volume": "gems",
+          "container_path": "/var/project/gems"
+        }
+      ],
+      "entry_point": ["/var/project/initialize"],
+      "essential": true
+    }
+  ]
+}
