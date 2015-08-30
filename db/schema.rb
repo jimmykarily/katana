@@ -45,10 +45,11 @@ ActiveRecord::Schema.define(version: 20150826180131) do
   add_index "test_jobs", ["user_id"], name: "index_test_jobs_on_user_id", using: :btree
 
   create_table "amazon_power_providers", force: :cascade do |t|
-    t.string "cluster_arn"
-    t.string "task_arn"
-    t.string "service_arn"
-    t.string "docker_image"
+    t.string  "cluster_arn"
+    t.string  "task_arn"
+    t.string  "service_arn"
+    t.string  "docker_image",                  null: false
+    t.integer "number_of_workers", default: 0, null: false
   end
 
   create_table "power_sources", force: :cascade do |t|

@@ -8,8 +8,10 @@ module Power
       before_destroy :cleanup
       before_validation :setup_defaults
 
-      validate :cluster_exists_validator, :service_exists_validator, on: :create
+      validate :cluster_exists_validator, on: :create
       validates :docker_image, presence: true
+
+      delegate :user_id, to: :power_source
 
       def self.client
         @client ||= Aws::ECS::Client.new
@@ -21,6 +23,10 @@ module Power
 
       def self.list_services(cluster)
         @list_services ||= client.list_services(cluster: cluster).service_arns
+      end
+
+      def self.describe_service(service_arn)
+        client.describe_services(services: [service_arn])
       end
 
       def self.list_task_definitions
@@ -48,11 +54,6 @@ module Power
           self.class.list_clusters.include?(cluster_arn)
       end
       
-      def service_exists?
-        service_arn.present? &&
-          self.class.list_services(cluster_arn).include?(service_arn)
-      end
-
       def task_definition_exists?
         task_arn.present? &&
           self.class.list_task_definitions.include?(task_arn)
@@ -61,39 +62,91 @@ module Power
       def registered_task_definition
         return nil unless task_arn
         self.class.client.describe_task_definition(task_definition: task_arn).
-          tksk_definition
-      end
-
-      def scale(number_of_instances)
-        # TODO: this methods should change the associated service so that
-        # number_of_instances container instances are used
-      end
-
-      def number_of_workers
-        # TODO: Return the number of tasks set in the associated service
+          task_definition
       end
 
       # TODO: Move the task definition template to a setting
       def task_definition_json
         path = Rails.root.join('app/templates/amazon/task_definitions/default.json.erb')
-        user_id = power_source.user_id
 
         ERB.new(File.read(path)).result(binding)
       end
 
+      # This method deregisters the user's task and registers again using the
+      # task_definition_json. It should be run whenever we update the json
+      # template.
       def update_task_definition
         deregister_task_definition if task_definition_exists?
         register_task_definition
+      end
+
+      # Returns the actual workers in the existing service.
+      # This should be the same number as number_of_workers attribute.
+      def current_number_of_workers
+        return false unless service_exists?
+
+        describe_service.what # TODO fix this
+      end
+
+      def service_exists?
+        service_arn.present? &&
+          self.class.list_services(cluster_arn).include?(service_arn)
+      end
+
+      def describe_service
+        return nil unless service_exists?
+
+        self.class.describe_service(service_arn)
+      end
+
+      def create_service
+        return false if !task_arn || service_exists?
+
+        # This one needs further investigation.
+        # https://aws.amazon.com/blogs/aws/new-amazon-ec2-feature-idempotent-instance-creation/
+        client_token = "ServiceCreation::#{user_id}"
+
+        result = self.class.client.create_service({
+          cluster: cluster_arn,
+          service_name: user_id.to_s,
+          task_definition: task_arn,
+          desired_count: number_of_workers,
+          client_token: client_token
+        })
+
+        self.update_column(:service_arn, result.service.service_arn)
+      end
+
+      def delete_service
+        return false unless service_exists?
+
+        if scale(0)
+          self.class.client.delete_service(
+            service: service_arn,
+            cluster: cluster_arn
+          )
+        else
+          raise "could not scale service to zero"
+        end
+      end
+
+      def scale(desired_count)
+        return false unless service_exists?
+
+        self.class.client.update_service({
+          cluster: cluster_arn,
+          service: service_arn,
+          desired_count: desired_count,
+          task_definition: task_arn
+        })
+
+        self.update_column(:number_of_workers, desired_count)
       end
 
       private
 
       def cluster_exists_validator
         errors.add(:base, "cluster does not exist") unless self.cluster_exists?
-      end
-
-      def service_exists_validator
-        errors.add(:base, "service does not exist") unless self.service_exists?
       end
 
       def deregister_task_definition
