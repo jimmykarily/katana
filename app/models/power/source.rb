@@ -3,11 +3,6 @@
 # resource providers, we implement the "Strategy" design pattern
 # and delegate the infrastructure specific methods to the strategy
 # object (called "@provider" to make more sense).
-
-# TODO: Add the user id in the initializer. Every method we call
-# should return results only for that user. E.g. list_clusters should
-# return the clusters assigned to that specific user not all our
-# clusters.
 module Power 
   class Source < ActiveRecord::Base
     self.table_name = "power_sources"

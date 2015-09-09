@@ -125,6 +125,7 @@ module Power
             service: service_arn,
             cluster: cluster_arn
           )
+          update_column(:service_arn, nil)
         else
           raise "could not scale service to zero"
         end
