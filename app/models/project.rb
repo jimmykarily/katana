@@ -214,6 +214,7 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # TODO: Better validate the mergeability of the custom yml too
   def valid_custom_docker_compose_yml
     begin
       result = custom_docker_compose_yml_as_hash
