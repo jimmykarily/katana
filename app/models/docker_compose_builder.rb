@@ -4,11 +4,12 @@
 # Project) to build the final docker-compose.yml which the user can use to start
 # a worker.
 class DockerComposeBuilder
-  attr_reader :project, :custom_data
+  attr_reader :project, :custom_data, :warnings
 
   def initialize(project)
     @project = project
     @custom_data = project.custom_docker_compose_yml_as_hash || {}
+    @warnings = []
   end
 
   # Return the docker-compose.yml contents for a given Doorkeeper::Application
@@ -48,7 +49,15 @@ class DockerComposeBuilder
           image_attributes["environment"].merge!(custom_environment_image_data)
         end
       end
-      image_attributes.merge!(custom_image_data) if custom_image_data.present? # Merge what's left
+
+      # Merge what's left
+      if custom_image_data.present?
+        if custom_image_data.is_a?(Hash)
+          image_attributes.merge!(custom_image_data)
+        else
+          warnings << "Some data for \"#{technology.standardized_name}\" cannot be merged"
+        end
+      end
 
       result[technology.standardized_name] = image_attributes
     end
@@ -76,7 +85,11 @@ class DockerComposeBuilder
 
     # Merge what's left from base image data
     if custom_base_image_data.present?
-      base_image_attributes.merge!(custom_base_image_data)
+      if custom_base_image_data.is_a?(Hash)
+        base_image_attributes.merge!(custom_base_image_data)
+      else
+        warnings << "Some data for \"#{project.docker_image.standardized_name}\" cannot be merged"
+      end
     end
 
     base_image_attributes = {

@@ -31,6 +31,8 @@ class Testributor.Pages.Settings
       $('.js-ajax-loader').fadeIn(600)
     ).on("ajax:success", (e, data, status, xhr)=>
       @preview.getDoc().setValue(data.alert || data.docker_compose_yml_contents)
+      # TODO: Don't alert. Show the warnings on the page somehow
+      alert(data.warnings) if data.warnings
     ).on("ajax:complete", (e, elements)=>
       $('.js-ajax-loader').fadeOut(600)
     )

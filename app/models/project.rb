@@ -149,7 +149,11 @@ class Project < ActiveRecord::Base
   end
 
   def generate_docker_compose_yaml(oauth_app_id)
-    DockerComposeBuilder.new(self).docker_compose_yml(oauth_app_id)
+    builder = DockerComposeBuilder.new(self)
+    yaml = builder.docker_compose_yml(oauth_app_id)
+    warnings =  builder.warnings
+
+    { yaml: yaml, warnings: warnings }
   end
 
   # For now we simply create the file based on a template. In the future

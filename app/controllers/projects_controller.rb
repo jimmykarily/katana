@@ -29,14 +29,20 @@ class ProjectsController < DashboardController
         if alert
           render json: { notice: notice, alert: alert, docker_compose_yml_contents: '' }
         else
-          yml_contents = current_project.generate_docker_compose_yaml(
+          yml_data = current_project.generate_docker_compose_yaml(
             current_project.worker_groups.first.try(:oauth_application_id))
 
+          yml_contents = yml_data[:yaml]
           if yml_contents.blank?
             yml_contents = "No worker group found. Please add a worker group first."
           end
 
-          render json: { notice: notice, docker_compose_yml_contents: yml_contents }
+          if yml_data[:warnings].any?
+            warnings = yml_data[:warnings].to_sentence
+          end
+
+          render json: { notice: notice, warnings: warnings,
+                         docker_compose_yml_contents: yml_contents }
         end
       end
 
@@ -66,7 +72,7 @@ class ProjectsController < DashboardController
   end
 
   def docker_compose
-    send_data current_project.generate_docker_compose_yaml(params[:client_id]),
+    send_data current_project.generate_docker_compose_yaml(params[:client_id])[:yaml],
       type: 'text/yml; charset=UTF-8;',
       disposition: 'attachment; filename=docker-compose.yml'
   end

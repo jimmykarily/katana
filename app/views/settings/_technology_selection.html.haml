@@ -40,7 +40,7 @@
 
     :ruby
       contents = project.generate_docker_compose_yaml(
-        project.worker_groups.first.try(:oauth_application_id))
+        project.worker_groups.first.try(:oauth_application_id))[:yaml]
 
       if contents.blank?
         contents = "No worker group found. Please add a worker group first."
