@@ -27,6 +27,21 @@ class WebhooksController < ApplicationController
     head :ok
   end
 
+  def slack
+    # TODO Only the owner of the project defined with params[:project_id]
+    # should be permitted to add the slack token to the project and enable
+    # slack notifications.
+    #
+    # TODO: Use the provided code (params[:code]) to generate the access token
+    # as described here (Oauth flow):
+    # https://api.slack.com/docs/slack-button#request_a_token
+    # Store this token encrypted (see how we do it for github_token column on users)
+    # on projects table (Project model). You will need a migration for this.
+    #
+    # We can now use this token to send message to the user specified channel
+    # on Slack. When and What to send it the next part of this story.
+  end
+
   private
 
   def handle_github_push

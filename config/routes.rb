@@ -53,6 +53,11 @@ Rails.application.routes.draw do
   get 'oauth/authorize_bitbucket' => 'oauth#authorize_bitbucket', as: :authorize_bitbucket_access
   post 'webhooks/github' => 'webhooks#github', as: :github_webhook
   post 'webhooks/bitbucket' => 'webhooks#bitbucket', as: :bitbucket_webhook
+  # Create the action for this route.
+  # NOTE: The user should be authorized for slack integration again in this action
+  # because the user might tamper the redirec_uri and try to gain access to 
+  # notifications for project's on which she has no permissions
+  post 'webhooks/slack/:project_id' => 'webhooks#slack', as: :slack_webhook
 
   authenticated :user do
     root to: "dashboard#index", as: :authenticated_root

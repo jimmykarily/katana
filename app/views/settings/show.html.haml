@@ -4,6 +4,13 @@
     .row.panelized
       .col-xs-12
         %h3 General Settings
+      .col-xs.12
+        -# TODO: Show this only to project owner
+        %a{:href => "https://slack.com/oauth/authorize?scope=incoming-webhook&client_id=8759406016.67241376853&redirect_uri=" + "http://localhost:3000/webhooks/slack/#{current_project.id}"}
+          %img{:alt => "Add to Slack", :height => "40",
+            :src => "https://platform.slack-edge.com/img/add_to_slack.png",
+            :srcset => "https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x",
+            :width => "139"}
       .col-md-6.m-b-10
         = simple_form_for current_project do |f|
           - repo_provider = current_project.repository_provider
